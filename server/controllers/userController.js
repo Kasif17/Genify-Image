@@ -7,12 +7,12 @@ export const registerUser = async (req,res)=>{
     try {
         const {name,email,password} = req.body;
         if(!name || !email || !password){
-            return res.status(401).json({sucess:false,msg:"Missing Credantials"})
+            return res.status(401).json({success:false,msg:"Missing Credantials"})
         }
 
          const existingUser = await userModel.findOne({ email });
     if (existingUser) {
-      return res.status(409).json({ success: false, msg: "User already exists" });
+      return res.status(409).json({ success: false, message: "User already exists" });
     }
 
 
@@ -31,10 +31,10 @@ export const registerUser = async (req,res)=>{
       expiresIn: "7d", 
     })
 
-        res.status(200).json({sucess:true,token,user:{name: user.name}})
+        res.status(200).json({success:true,token,user:{name: user.name}})
     } catch (error) {
         console.log(error);
-        res.status(403).json({sucess:false,msg:error.message})
+        res.status(403).json({success:false,message:error.message})
         
     }
 }
@@ -47,7 +47,7 @@ export const loginUser = async (req,res)=>{
         const user = await userModel.findOne({email})
 
         if(!user){
-            return res.status(404).json({sucess:false, msg:"User not found"})
+            return res.status(404).json({success:false, msg:"User not found"})
         }
         const isMatch = await bcrypt.compare(password,user.password)
 
@@ -56,14 +56,14 @@ export const loginUser = async (req,res)=>{
       expiresIn: "7d",
     })
 
-              res.status(200).json({sucess:true,token,user:{name: user.name}})
+              res.status(200).json({success:true,token,user:{name: user.name}})
         }else{
-            return res.status(404).json({sucess:false, msg:"Invalid Credentials"})
+            return res.status(404).json({success:false, msg:"Invalid Credentials"})
         }
 
     } catch (error) {
         console.log(error);
-        res.status(403).json({sucess:false,msg:error.message})
+        res.status(403).json({success:false,msg:error.message})
     }
 }
 
@@ -74,7 +74,7 @@ export const userCredits = async (req, res) => {
     const user = await userModel.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ success: false, msg: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
     res.status(200).json({

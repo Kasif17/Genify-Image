@@ -1,17 +1,31 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { assets } from '../assets/assets'
 import {motion} from "framer-motion"
+import { AppContext } from '../context/AppContext';
 
 const Result = () => {
 
   const [image,setImage] = useState(assets.sample_img_1);
-  const [isImageLoaded,setImageLoaded] = useState(true);
+  const [isImageLoaded,setImageLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [input,setInput] = useState('');
 
-  const onSibmitHandler = async (e) =>{
+  const {generateImage} = useContext(AppContext)
 
+  const onSibmitHandler = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+
+  if (input) {
+    const generatedImage = await generateImage(input); 
+    if (generatedImage) {
+      setImageLoaded(true);
+      setImage(generatedImage); 
+    }
   }
+  setLoading(false);
+};
+
 
   return (
     <motion.form
@@ -24,6 +38,7 @@ const Result = () => {
     <div className='relative'>
       <img src={image} alt="" className='max-w-sm rounded' />
       <span className={`absolute bottom-0 left-0 h-1 bg-blue-500 ${loading ? 'w-full transition-all duration-[10s] ' : 'w-0'} `}></span>
+
     </div>
     <p className={!loading ? 'hidden' : ''}>Loading.....</p>
     </div>

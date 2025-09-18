@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
+
 import mongoDB from './config/db.js';
 import userRouter from './routes/userRoutes.js'
+import imageRouter from './routes/imageRoutes.js';
 
 const app = express();
 mongoDB();
@@ -13,6 +15,8 @@ app.use(cors());
 
 // Routes
 app.use('/api/user',userRouter)
+app.use('/api/image',imageRouter)
+
 app.get('/', (req, res) => {
   res.send('API is Working Now!!!!');
 });
