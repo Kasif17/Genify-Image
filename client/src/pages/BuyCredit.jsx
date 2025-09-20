@@ -24,7 +24,7 @@ const BuyCredit = () => {
       try {
         const { data } = await axios.post(
           `${backendUrl}/api/user/verify-razor`,
-          response, // send razorpay_order_id, razorpay_payment_id, razorpay_signature
+          response, 
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -56,7 +56,7 @@ const BuyCredit = () => {
         setShowLogin(true)
       }
      const { data } = await axios.post(
-  `${backendUrl}/api/user/pay-razor`,   // ✅ correct
+  `${backendUrl}/api/user/pay-razor`,   
   { planId },
   {
     headers: {

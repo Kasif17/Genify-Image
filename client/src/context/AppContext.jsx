@@ -14,7 +14,6 @@ const AppContextProvider = (props) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate()
 
-  // ✅ Set axios default header whenever token changes
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -24,7 +23,7 @@ const AppContextProvider = (props) => {
     }
   }, [token]);
 
-  // ✅ Load credits and user details from backend
+
   const loadCreditsData = async () => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/user/credits`);
@@ -50,11 +49,11 @@ const AppContextProvider = (props) => {
       { headers: { token } }
     );
 
-    const data = response.data; // ✅ Correctly extract response
+    const data = response.data; 
 
-    if (data.success) {  // ✅ Fixed typo
+    if (data.success) {  
       loadCreditsData();
-      return data.resultImage; // ✅ Make sure backend actually sends this key
+      return data.resultImage;
     } else {
       toast.error(data.message || "Failed to generate image");
       loadCreditsData();
@@ -66,7 +65,7 @@ const AppContextProvider = (props) => {
 };
 
 
-  // ✅ Logout clears token globally
+
   const logout = () => {
     localStorage.removeItem("token");
     setToken("");
