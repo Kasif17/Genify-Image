@@ -11,46 +11,59 @@ const BuyCredit = () => {
 
   const navigate = useNavigate();
 
-  const initPay = async(order)=>{
-     const options = {
-      key : import.meta.env.VITE_RAZORPAY_KEY_ID,
-      amount : order.amount,
-      currency : order.currency,
-      name:'Credits Payment',
-      description:'Credits Payment',
-      order_id: order.id,
-      receipt:order.receipt,
-      handler: async (response)=>{
-         try {
-          const { data } = await axios.post(
-        backendUrl + '/api/user/verify-razor',
-       response,
-       {
-          headers: {
-      Authorization: `Bearer ${token}`,
-        },
-       }
-       );
-          if(data.success){
-            loadCreditsData();
-            navigate('/')
-            toast.success('credit Added')
-          }
-         } catch (error) {
-          toast.error(error.message)
-         }
+  const initPay = (order) => {
+  const options = {
+    key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+    amount: order.amount, // paise
+    currency: order.currency,
+    name: "Credits Payment",
+    description: "Credits Payment",
+    order_id: order.id,   
+    handler: async function (response) {
+      console.log("Razorpay response:", response);
+      try {
+        const { data } = await axios.post(
+          `${backendUrl}/api/user/verify-razor`,
+          response, // send razorpay_order_id, razorpay_payment_id, razorpay_signature
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (data.success) {
+          loadCreditsData();
+          toast.success("Credits Added");
+          navigate("/");
+        } else {
+          toast.error(data.message);
+        }
+      } catch (err) {
+        toast.error(err.message);
       }
-     }
-     const rzp = new window.Razorpay(options)
-     rzp.open()
-  }
+    },
+    prefill: {
+      name: user.name,
+      email: user.email,
+    },
+    theme: { color: "#1a73e8" },
+  };
+
+  const rzp = new window.Razorpay(options);
+  rzp.open();
+};
 
   const paymentRazorpay = async (planId)=>{
     try {
       if(!user){
         setShowLogin(true)
       }
-     const data =  await axios.post(backendUrl + 'api/user/pay-razor',{planId},{headers:{token}})
+     const { data } = await axios.post(
+  `${backendUrl}/api/user/pay-razor`,   // ✅ correct
+  { planId },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
       if(data.success){
        initPay(data.order)
@@ -80,7 +93,7 @@ const BuyCredit = () => {
             <p className='text-sm'>{item.desc}</p>
             <p className='mt-6'>
               <span className='text-3xl font-medium'>${item.price} </span>/{item.credits} credits</p>
-              <button onClick={()=>paymentRazorpay(item.id)} className='w-full bg-gray-800 text-white mt-8 text-sm rounded-md py-2.5 min-w-52'>{user?'Purchase':'Get Started'}</button>
+            <button onClick={()=>paymentRazorpay(item.id)} className='w-full bg-gray-800 text-white mt-8 text-sm rounded-md py-2.5 min-w-52'>{user?'Purchase':'Get Started'}</button>
           </div>
         ))}
       </div>

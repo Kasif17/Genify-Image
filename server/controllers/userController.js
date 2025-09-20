@@ -2,6 +2,7 @@ import userModel from "../models/user.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Razorpay from 'razorpay'
+import crypto from "crypto";
 import transactionModel from "../models/transactionModel.js";
 
 
@@ -91,7 +92,6 @@ export const userCredits = async (req, res) => {
   }
 };
 
-
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -99,36 +99,32 @@ const razorpayInstance = new Razorpay({
 
 export const paymentRazorpay = async (req, res) => {
   try {
-    // ✅ Get userId from auth middleware
-    const userId = req.user?.id;
-    const { planId } = req.body;
+    
+         const userId = req.user ? req.user._id : req.body.userId;
+        const  {planId}  = req.body;
 
-    if (!planId) {
-      return res.status(400).json({ success: false, message: "Plan ID is required" });
-    }
+        const userData = await userModel.findById(userId)
 
-    // ✅ Validate user
-    const userData = await userModel.findById(userId);
-    if (!userData) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
+        if (!planId || !userId) {
+         return res.status(400).json({ success: false, message: "Missing Details is required" });
+        }
 
-    let credits = 0,
-      amount = 0,
-      plan = "";
+         let credits , plan , amount, date
 
-    switch (planId) {
-      case "Basic":
+        switch (planId) {
+        case "Basic":
         plan = "Basic";
         credits = 100;
         amount = 10;
         break;
-      case "Advance":
-        plan = "Advance";
-        credits = 500;
-        amount = 50;
+
+        case "Advanced":
+          plan = "Advanced";
+         credits = 500;
+          amount = 50;
         break;
-      case "Business":
+
+        case "Business":
         plan = "Business";
         credits = 5000;
         amount = 250;
@@ -137,27 +133,29 @@ export const paymentRazorpay = async (req, res) => {
         return res.status(404).json({ success: false, message: "Plan Not Found" });
     }
 
-    // ✅ Create transaction record in DB
-    const newTransaction = await transactionModel.create({
+    date = Date.now();
+
+    const transactionData = {
       userId,
       plan,
       amount,
       credits,
-      date: Date.now(),
-      payment: false,
-    });
+      date,
+    };
 
+     const newTransaction = await transactionModel.create(transactionData)
     
     const options = {
       amount: amount * 100, 
       currency: process.env.CURRENCY || "INR",
-      receipt: String(newTransaction._id),
+      receipt: newTransaction._id,
     };
 
-    const order = await razorpayInstance.orders.create(options);
+   const order = await razorpayInstance.orders.create(options);
 
-    res.json({ success: true, order });
+    return res.json({ success: true, order });
 
+    
   } catch (error) {
     console.error("Razorpay Order Error:", error);
     res.status(500).json({
@@ -166,7 +164,12 @@ export const paymentRazorpay = async (req, res) => {
       error: error.message,
     });
   }
+
 };
+
+
+
+
 
 export const verifyRazorpay = async (req, res) => {
   try {
